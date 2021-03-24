@@ -4,9 +4,13 @@ const path = require('path')
 const hbs = require('hbs')
 const bodyParser = require('body-parser')
 const upload = require('express-fileupload')
+const flash = require('connect-flash')
 const methodOverride = require('method-override')
 const session = require('express-session')
 const passport = require('passport')
+const {
+  sampleHelper
+} = require('./helpers/helpers')
 
 
 
@@ -29,6 +33,9 @@ app.set('view engine', 'hbs')
 app.set('views', path.join(__dirname, './views'))
 hbs.registerPartials(__dirname + '/views/partials');
 
+//registering helper functions
+hbs.registerHelper('sampleHelper', sampleHelper)
+
 //setting session
 app.use(session({
   secret: 'thisisatemplate',
@@ -36,9 +43,21 @@ app.use(session({
   saveUninitialized: true
 }))
 
+//express flash
+app.use(flash());
+
 //passportjs setup
 app.use(passport.initialize())
 app.use(passport.session())
+
+//setting locals
+app.use((req, res, next)=> {
+  res.locals.user = req.user || null
+  res.locals.success_msg = req.flash('success_msg')
+  res.locals.error_msg = req.flash('error_msg')
+  res.locals.error = req.flash('error')
+  next()
+})
 
 //setting routes
 const main = require('./routes/main')
